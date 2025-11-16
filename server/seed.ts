@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { users, userRoles, categories, products, productImages } from "@shared/schema";
 import { hashPassword } from "./auth";
+import { eq } from "drizzle-orm";
 
 async function seed() {
   console.log("🌱 Начинаем заполнение базы данных...");
@@ -51,7 +52,7 @@ async function seed() {
     const existingUser = await db
       .select()
       .from(users)
-      .where((u) => u.email === userData.email)
+      .where(eq(users.email, userData.email))
       .limit(1);
 
     if (existingUser.length === 0) {
