@@ -121,16 +121,8 @@ export function PromocodeFormDialog({ open, onOpenChange, promocode }: Promocode
           id: promocode.id,
           data: formattedData,
         })
-        toast({
-          title: "Промокод обновлен",
-          description: "Изменения сохранены успешно",
-        })
       } else {
         await createPromocode.mutateAsync(formattedData)
-        toast({
-          title: "Промокод создан",
-          description: "Новый промокод добавлен",
-        })
       }
       
       await queryClient.invalidateQueries({ queryKey: ["promocodes"] })

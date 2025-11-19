@@ -37,9 +37,6 @@ export default function CartPage() {
   const handleRemoveItem = async (productId: string) => {
     try {
       await removeCartMutation.mutateAsync(productId)
-      toast({
-        title: "Товар удалён из корзины",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",

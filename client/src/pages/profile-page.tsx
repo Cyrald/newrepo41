@@ -62,9 +62,6 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout()
-    toast({
-      title: "Вы вышли из системы",
-    })
     setLocation("/")
   }
 
@@ -72,10 +69,6 @@ export default function ProfilePage() {
     e.preventDefault()
     try {
       await updateProfile.mutateAsync(profileData)
-      toast({
-        title: "Профиль обновлен",
-        description: "Изменения успешно сохранены",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -101,10 +94,6 @@ export default function ProfilePage() {
       await updatePassword.mutateAsync({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
-      })
-      toast({
-        title: "Пароль изменен",
-        description: "Пароль успешно обновлен",
       })
       setPasswordData({
         currentPassword: "",

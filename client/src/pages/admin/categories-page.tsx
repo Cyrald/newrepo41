@@ -76,10 +76,6 @@ export default function AdminCategoriesPage() {
 
     try {
       await deleteCategory.mutateAsync(categoryToDelete)
-      toast({
-        title: "Категория удалена",
-        description: "Категория успешно удалена",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",

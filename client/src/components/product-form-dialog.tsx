@@ -254,9 +254,6 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
       // Remove existing image from server
       try {
         await deleteImage.mutateAsync(image.id)
-        toast({
-          title: "Изображение удалено",
-        })
       } catch (error: any) {
         toast({
           title: "Ошибка",
@@ -384,11 +381,6 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
         await queryClient.invalidateQueries({ queryKey: ["adminProducts"] })
         await queryClient.invalidateQueries({ queryKey: ["products", product.id] })
         await refetch()
-        
-        toast({
-          title: "Товар обновлен",
-          description: "Изменения успешно сохранены",
-        })
       } else {
         const response = await fetch("/api/products", {
           method: "POST",
@@ -406,11 +398,6 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
         setTimeout(() => setIsSaved(false), 2000)
 
         await queryClient.invalidateQueries({ queryKey: ["adminProducts"] })
-        
-        toast({
-          title: "Товар создан",
-          description: "Товар успешно добавлен в каталог",
-        })
 
         onOpenChange(false)
       }

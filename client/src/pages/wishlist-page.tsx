@@ -40,10 +40,6 @@ export default function WishlistPage() {
   const handleAddToCart = async (productId: string) => {
     try {
       await addToCart.mutateAsync({ productId, quantity: 1 })
-      toast({
-        title: "Добавлено в корзину",
-        description: "Товар успешно добавлен в корзину",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -56,10 +52,6 @@ export default function WishlistPage() {
   const handleRemoveFromWishlist = async (productId: string) => {
     try {
       await removeFromWishlist.mutateAsync(productId)
-      toast({
-        title: "Удалено из избранного",
-        description: "Товар удален из избранного",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",

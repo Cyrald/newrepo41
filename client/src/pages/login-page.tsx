@@ -39,11 +39,6 @@ export default function LoginPage() {
     try {
       await loginMutation.mutateAsync(data)
       
-      toast({
-        title: "Добро пожаловать!",
-        description: "Вы успешно вошли в систему",
-      })
-      
       // Redirect to returnUrl or home
       const returnUrl = new URLSearchParams(searchParams).get("returnUrl") || "/"
       setLocation(returnUrl)

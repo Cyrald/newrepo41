@@ -140,10 +140,6 @@ export default function CatalogPage() {
   const handleAddToCart = async (productId: string) => {
     try {
       await addToCart.mutateAsync({ productId, quantity: 1 })
-      toast({
-        title: "Добавлено в корзину",
-        description: "Товар успешно добавлен в корзину",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -156,11 +152,6 @@ export default function CatalogPage() {
   const handleToggleWishlist = async (productId: string) => {
     // Require authentication for wishlist
     if (!isAuthenticated) {
-      toast({
-        title: "Требуется вход",
-        description: "Пожалуйста, войдите чтобы добавить товар в избранное",
-        variant: "default",
-      })
       setLocation(`/login?returnUrl=${location}`)
       return
     }
@@ -170,16 +161,8 @@ export default function CatalogPage() {
     try {
       if (isInWishlist) {
         await removeFromWishlist.mutateAsync(productId)
-        toast({
-          title: "Удалено из избранного",
-          description: "Товар удалён из избранного",
-        })
       } else {
         await addToWishlist.mutateAsync(productId)
-        toast({
-          title: "Добавлено в избранное",
-          description: "Товар добавлен в избранное",
-        })
       }
     } catch (error: any) {
       toast({

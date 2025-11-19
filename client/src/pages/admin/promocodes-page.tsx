@@ -78,10 +78,6 @@ export default function AdminPromocodesPage() {
 
     try {
       await deletePromocode.mutateAsync(promocodeToDelete)
-      toast({
-        title: "Промокод удален",
-        description: "Промокод успешно удален",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",

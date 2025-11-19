@@ -270,7 +270,6 @@ export default function AdminSupportChatPage() {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                       });
-                      toast({ title: "Обращение закрыто" });
                       queryClient.invalidateQueries({ queryKey: ["/api/support/conversations"] });
                       setSelectedUserId(null);
                     } catch {

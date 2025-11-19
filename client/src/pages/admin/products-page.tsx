@@ -164,10 +164,6 @@ export default function AdminProductsPage() {
   const handleUnarchiveProduct = async (productId: string) => {
     try {
       await unarchiveProduct.mutateAsync(productId)
-      toast({
-        title: "Товар восстановлен",
-        description: "Товар успешно возвращён в каталог",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -182,10 +178,6 @@ export default function AdminProductsPage() {
 
     try {
       await archiveProduct.mutateAsync(productToArchive)
-      toast({
-        title: "Товар архивирован",
-        description: "Товар успешно перенесён в архив",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -208,10 +200,6 @@ export default function AdminProductsPage() {
 
     try {
       await permanentDeleteProduct.mutateAsync(productToDelete)
-      toast({
-        title: "Товар удалён",
-        description: "Товар успешно удалён из системы",
-      })
     } catch (error: any) {
       toast({
         title: "Ошибка",

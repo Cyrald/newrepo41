@@ -85,16 +85,8 @@ export function CategoryFormDialog({ open, onOpenChange, category }: CategoryFor
           id: category.id,
           data,
         })
-        toast({
-          title: "Категория обновлена",
-          description: "Изменения сохранены успешно",
-        })
       } else {
         await createCategory.mutateAsync(data)
-        toast({
-          title: "Категория создана",
-          description: "Новая категория добавлена в каталог",
-        })
       }
       
       await queryClient.invalidateQueries({ queryKey: ["categories"] })

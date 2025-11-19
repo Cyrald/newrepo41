@@ -116,11 +116,6 @@ export function SupportChatWidget({ isOpen, onClose }: SupportChatWidgetProps) {
   const handleAcceptPrivacy = () => {
     if (!hasAcceptedPrivacy) return
     if (!user?.id) {
-      toast({
-        title: "Необходима авторизация",
-        description: "Для использования чата поддержки необходимо войти в систему",
-        variant: "destructive",
-      })
       return
     }
     localStorage.setItem(`privacy_accepted_${user.id}`, "true")

@@ -44,11 +44,6 @@ export default function RegisterPage() {
     try {
       await registerMutation.mutateAsync(data)
       
-      toast({
-        title: "Регистрация успешна!",
-        description: "Проверьте вашу почту для подтверждения email",
-      })
-      
       setLocation("/login")
     } catch (error: any) {
       toast({

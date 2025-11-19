@@ -202,11 +202,6 @@ export default function CheckoutPage() {
         bonusesUsed: cappedBonusesUsed,
       })
       
-      toast({
-        title: "Заказ оформлен!",
-        description: "Мы отправили подтверждение на вашу почту",
-      })
-      
       setLocation("/profile")
     } catch (error: any) {
       toast({
@@ -245,10 +240,6 @@ export default function CheckoutPage() {
           id: result.promocode.id,
           code: result.promocode.code,
           discountAmount: result.discountAmount,
-        })
-        toast({
-          title: "Промокод применен",
-          description: `Скидка -${result.discountAmount} ₽`,
         })
       } else {
         toast({
