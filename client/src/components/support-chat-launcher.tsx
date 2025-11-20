@@ -28,10 +28,10 @@ export function SupportChatLauncher() {
         <Button
           onClick={openChat}
           size="icon"
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-50 bg-primary hover:bg-primary/90"
+          className="fixed bottom-6 left-6 h-7 w-7 rounded-full shadow-lg hover:shadow-xl transition-all z-50 bg-primary hover:bg-primary/90"
           aria-label="Открыть чат поддержки"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-4 w-4" />
           {/* Unread badge - можно добавить позже */}
           {/* <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
             3

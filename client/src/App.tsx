@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SupportChatLauncher } from "@/components/support-chat-launcher";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 const HomePage = lazy(() => import("@/pages/home-page"));
@@ -128,10 +129,12 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <Suspense fallback={<PageLoadingFallback />}>
-              <Router />
-            </Suspense>
-            <SupportChatLauncher />
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoadingFallback />}>
+                <Router />
+              </Suspense>
+              <SupportChatLauncher />
+            </ErrorBoundary>
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>

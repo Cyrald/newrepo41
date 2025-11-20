@@ -7,11 +7,11 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
+export async function apiRequest<T = unknown>(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<T> {
   // Определяем, является ли data FormData или другим типом файлов
   const isFormData = data instanceof FormData;
   const isBlob = data instanceof Blob;
@@ -28,7 +28,20 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return res;
+  
+  // Handle empty responses (204 No Content, etc.)
+  if (res.status === 204 || res.headers.get('content-length') === '0') {
+    return undefined as T;
+  }
+  
+  // Parse JSON if content-type is application/json
+  const contentType = res.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    return (await res.json()) as T;
+  }
+  
+  // Otherwise return text
+  return (await res.text()) as T;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

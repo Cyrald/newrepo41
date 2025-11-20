@@ -85,6 +85,27 @@ Preferred communication style: Simple, everyday language.
 - An auto-select feature for the first conversation in the admin interface.
 - Includes a dedicated privacy policy page detailing the consent flow.
 
+## Recent Changes
+
+### 2024-11-20: Support Chat Widget & Critical Bug Fixes
+
+**Support Chat Widget Enabled:**
+- Chat widget is now active and visible for authenticated regular users (customer role)
+- Widget positioned in bottom-left corner with reduced button size (h-7 w-7)
+- Staff users (admin, marketer, consultant) do not see the widget
+
+**Critical Bug Fixes:**
+- **Fixed white screen crash**: apiRequest now properly returns parsed JSON instead of raw Response objects
+- **Fixed TypeScript errors**: Added proper generic types to useMutation contexts
+- **Added ErrorBoundary**: Prevents full application crashes when component errors occur
+- **Fixed mutation types**: All support chat mutations now have proper context typing
+
+**Technical Details:**
+- Modified `apiRequest<T>()` in queryClient.ts to parse JSON responses
+- Updated support chat mutations in both user widget and admin panel
+- Added ErrorBoundary component wrapping Router and SupportChatLauncher
+- All LSP diagnostics resolved
+
 ## External Dependencies
 
 -   **Payment Integration:** YooKassa SDK

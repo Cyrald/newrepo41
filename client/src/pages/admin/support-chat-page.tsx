@@ -90,7 +90,12 @@ export default function AdminSupportChatPage() {
   })
 
   // Send message mutation
-  const sendMessageMutation = useMutation<SupportMessage, Error, { userId: string; text: string }>({
+  const sendMessageMutation = useMutation<
+    SupportMessage,
+    Error,
+    { userId: string; text: string },
+    { previousMessages?: SupportMessage[] }
+  >({
     mutationFn: async (data: { userId: string; text: string }) => {
       return apiRequest<SupportMessage>("POST", "/api/support/messages", {
         userId: data.userId,
