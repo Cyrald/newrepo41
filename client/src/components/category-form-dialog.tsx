@@ -228,11 +228,15 @@ export function CategoryFormDialog({ open, onOpenChange, category }: CategoryFor
                     <FormLabel>Порядок сортировки</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        type="text"
                         placeholder="0"
                         {...field}
-                        value={field.value || 0}
+                        value={field.value || ""}
                         onChange={(e) => field.onChange(e.target.value)}
+                        onBlur={(e) => {
+                          const num = parseInt(e.target.value) || 0;
+                          field.onChange(num);
+                        }}
                       />
                     </FormControl>
                     <FormDescription>

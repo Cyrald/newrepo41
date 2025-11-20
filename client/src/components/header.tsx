@@ -101,10 +101,10 @@ export function Header() {
               <ShoppingCart className="h-5 w-5" />
               {cartItemsCount > 0 && (
                 <Badge
-                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px] bg-red-500 hover:bg-red-500 dark:bg-orange-500 dark:hover:bg-orange-500 text-white border-0 pointer-events-none"
+                  className="absolute -right-0.5 -top-0.5 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-full p-0 text-[9px] bg-red-500 hover:bg-red-500 dark:bg-orange-500 dark:hover:bg-orange-500 text-white border-0 pointer-events-none"
                   data-testid="badge-cart-count"
                 >
-                  {cartItemsCount > 9 ? "9+" : cartItemsCount}
+                  {cartItemsCount > 99 ? "99+" : cartItemsCount}
                 </Badge>
               )}
             </Link>

@@ -683,10 +683,15 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
                         <FormLabel>Количество на складе *</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
+                            type="text"
                             placeholder="50"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            onBlur={(e) => {
+                              const num = parseInt(e.target.value) || 0;
+                              field.onChange(Math.max(0, num));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -706,7 +711,17 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
                         <FormItem>
                           <FormLabel>Процент скидки (%)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" max="100" placeholder="0" {...field} />
+                            <Input 
+                              type="text" 
+                              placeholder="0" 
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              onBlur={(e) => {
+                                const num = parseInt(e.target.value) || 0;
+                                field.onChange(Math.max(0, Math.min(100, num)));
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

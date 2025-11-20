@@ -125,11 +125,19 @@ export default function CartPage() {
                             </Button>
                             
                             <Input
-                              type="number"
+                              type="text"
                               value={item.quantity}
-                              onChange={(e) => handleUpdateQuantity(item.product.id, parseInt(e.target.value))}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "" || /^\d+$/.test(val)) {
+                                  e.target.value = val;
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const num = parseInt(e.target.value) || 1;
+                                handleUpdateQuantity(item.product.id, Math.max(1, num));
+                              }}
                               className="h-8 w-16 text-center"
-                              min="1"
                               data-testid={`input-quantity-${item.id}`}
                             />
                             

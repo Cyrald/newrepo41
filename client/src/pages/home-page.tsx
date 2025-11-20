@@ -15,6 +15,9 @@ import { useProducts } from "@/hooks/useProducts"
 import { useWishlist } from "@/hooks/useWishlist"
 import { useAuthStore } from "@/stores/authStore"
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes"
+import { useAddToCart } from "@/hooks/useCart"
+import { useAddToWishlist, useRemoveFromWishlist } from "@/hooks/useWishlist"
+import { useToast } from "@/hooks/use-toast"
 
 export default function HomePage() {
   usePrefetchRoutes()
@@ -26,6 +29,10 @@ export default function HomePage() {
   })
   const { data: wishlistItems } = useWishlist()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const addToCart = useAddToCart()
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
+  const { toast } = useToast()
 
   const featuredCategories = categories?.slice(0, 3) || []
   
@@ -38,6 +45,30 @@ export default function HomePage() {
   const newProducts = newProductsData?.products || []
   // Create a Set of wishlist product IDs for quick lookup (empty for unauthenticated users)
   const wishlistProductIds = new Set((wishlistItems || []).map((item: any) => item.productId))
+
+  const handleAddToCart = async (productId: string) => {
+    if (!isAuthenticated) {
+      toast({ title: "Требуется авторизация", description: "Войдите для добавления товаров в корзину", variant: "destructive" })
+      return
+    }
+    addToCart.mutate({ productId, quantity: 1 }, {
+      onSuccess: () => toast({ title: "Товар добавлен в корзину" }),
+      onError: () => toast({ title: "Ошибка", description: "Не удалось добавить товар", variant: "destructive" })
+    })
+  }
+
+  const handleToggleWishlist = async (productId: string) => {
+    const isInWishlist = wishlistProductIds.has(productId)
+    if (isInWishlist) {
+      removeFromWishlist.mutate(productId, {
+        onSuccess: () => toast({ title: "Удалено из избранного" }),
+      })
+    } else {
+      addToWishlist.mutate(productId, {
+        onSuccess: () => toast({ title: "Добавлено в избранное" }),
+      })
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -111,6 +142,8 @@ export default function HomePage() {
                   <ProductCard 
                     key={product.id} 
                     product={product}
+                    onAddToCart={handleAddToCart}
+                    onToggleWishlist={isAuthenticated ? handleToggleWishlist : undefined}
                     isInWishlist={wishlistProductIds.has(product.id)}
                   />
                 ))}

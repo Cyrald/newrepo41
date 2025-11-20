@@ -144,9 +144,9 @@ export function SupportChatWidget({ isOpen, onClose }: SupportChatWidgetProps) {
 
   if (!isOpen) return null
 
-  // Show chat widget in bottom left corner - responsive design
+  // Show chat widget in bottom right corner - responsive design
   return (
-    <div className="fixed bottom-20 left-6 z-50 flex flex-col w-[90vw] sm:w-[252px] h-[50vh] sm:h-[390px] max-h-[390px] bg-background border rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-20 right-6 z-50 flex flex-col w-[90vw] sm:w-[252px] h-[50vh] sm:h-[390px] max-h-[390px] bg-background border rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-2xl">
         <div className="flex items-center gap-2">

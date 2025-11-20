@@ -186,13 +186,15 @@ export function PromocodeFormDialog({ open, onOpenChange, promocode }: Promocode
                       <FormLabel>Скидка (%) *</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          min="1"
-                          max="100"
+                          type="text"
                           placeholder="10"
                           {...field}
                           value={field.value || ""}
                           onChange={(e) => field.onChange(e.target.value)}
+                          onBlur={(e) => {
+                            const num = parseInt(e.target.value) || 0;
+                            field.onChange(Math.max(1, Math.min(100, num)));
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -232,12 +234,15 @@ export function PromocodeFormDialog({ open, onOpenChange, promocode }: Promocode
                       <FormLabel>Мин. сумма заказа (₽) *</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          min="0"
+                          type="text"
                           placeholder="0"
                           {...field}
-                          value={field.value || 0}
+                          value={field.value || ""}
                           onChange={(e) => field.onChange(e.target.value)}
+                          onBlur={(e) => {
+                            const num = parseInt(e.target.value) || 0;
+                            field.onChange(Math.max(0, num));
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -253,12 +258,15 @@ export function PromocodeFormDialog({ open, onOpenChange, promocode }: Promocode
                       <FormLabel>Макс. сумма скидки (₽)</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          min="0"
+                          type="text"
                           placeholder="Без ограничений"
                           {...field}
                           value={field.value || ""}
                           onChange={(e) => field.onChange(e.target.value)}
+                          onBlur={(e) => {
+                            const num = parseInt(e.target.value) || 0;
+                            field.onChange(num > 0 ? num : "");
+                          }}
                         />
                       </FormControl>
                       <FormDescription>

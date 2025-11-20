@@ -54,10 +54,16 @@ export function ProductCard({ product, onAddToCart, onToggleWishlist, isInWishli
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setLocalQuantity(value)
-    
+  }
+
+  const handleQuantityBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const value = e.target.value
     const newQuantity = parseInt(value, 10)
     if (!isNaN(newQuantity) && newQuantity > 0 && newQuantity <= product.stockQuantity) {
+      setLocalQuantity(String(newQuantity))
       updateCartItem.mutate({ productId: product.id, quantity: newQuantity })
+    } else {
+      setLocalQuantity(String(cartQuantity))
     }
   }
 
@@ -148,25 +154,26 @@ export function ProductCard({ product, onAddToCart, onToggleWishlist, isInWishli
         <div className="mt-auto">
           {product.stockQuantity > 0 ? (
             cartQuantity > 0 ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Button
-                  className="flex-1 h-8 text-xs bg-secondary/80 hover:bg-secondary text-secondary-foreground"
+                  className="w-full h-8 text-xs bg-secondary/80 hover:bg-secondary text-secondary-foreground"
                   size="sm"
                   variant="secondary"
                   disabled
                   data-testid={`button-in-cart-${product.id}`}
                 >
                   <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
-                  Уже в корзине
+                  В корзине
                 </Button>
                 <Input
-                  type="number"
+                  type="text"
                   min="1"
                   max={product.stockQuantity}
                   value={localQuantity || cartQuantity}
                   onChange={handleQuantityChange}
+                  onBlur={handleQuantityBlur}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-14 h-8 text-xs text-center"
+                  className="w-full h-8 text-xs text-center"
                   data-testid={`input-quantity-${product.id}`}
                 />
               </div>

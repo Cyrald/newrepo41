@@ -28,7 +28,7 @@ export function SupportChatLauncher() {
         <Button
           onClick={openChat}
           size="icon"
-          className="fixed bottom-6 left-6 h-11 w-11 rounded-full shadow-lg hover:shadow-xl transition-all z-50 bg-primary hover:bg-primary/90"
+          className="fixed bottom-6 right-6 h-11 w-11 rounded-full shadow-lg hover:shadow-xl transition-all z-50 bg-primary hover:bg-primary/90"
           aria-label="Открыть чат поддержки"
         >
           <MessageCircle className="h-6 w-6" />

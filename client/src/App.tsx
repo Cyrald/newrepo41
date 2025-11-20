@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SupportChatLauncher } from "@/components/support-chat-launcher";
+import { CartLoader } from "@/components/cart-loader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -127,6 +128,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light">
         <AuthProvider>
+          <CartLoader />
           <TooltipProvider>
             <Toaster />
             <ErrorBoundary>

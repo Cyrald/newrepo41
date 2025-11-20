@@ -30,7 +30,7 @@ export default function ProductDetailPage() {
   const removeFromWishlist = useRemoveFromWishlist()
   const { data: wishlistItems } = useWishlist()
 
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState<number | "">(1)
   const [selectedImage, setSelectedImage] = useState(0)
 
   const relatedProducts: any[] = []
@@ -63,10 +63,12 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product) return
     
+    const qty = typeof quantity === "number" ? quantity : 1
+    
     try {
       await addToCartMutation.mutateAsync({
         productId: product.id,
-        quantity,
+        quantity: qty,
       })
     } catch (error: any) {
       toast({
@@ -251,26 +253,34 @@ export default function ProductDetailPage() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
+                    onClick={() => setQuantity(Math.max(1, (typeof quantity === "number" ? quantity : 1) - 1))}
+                    disabled={typeof quantity === "number" && quantity <= 1}
                     data-testid="button-decrease-quantity"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
                   
                   <Input
-                    type="number"
+                    type="text"
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || /^\d+$/.test(val)) {
+                        setQuantity(val === "" ? "" : parseInt(val));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const num = parseInt(e.target.value) || 1;
+                      setQuantity(Math.max(1, num));
+                    }}
                     className="w-20 text-center"
-                    min="1"
                     data-testid="input-quantity"
                   />
                   
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => setQuantity((typeof quantity === "number" ? quantity : 1) + 1)}
                     data-testid="button-increase-quantity"
                   >
                     <Plus className="h-4 w-4" />
