@@ -136,8 +136,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ Handles conversation_archived/conversation_closed WebSocket events
 
 **Chat Launcher (client/src/components/support-chat-launcher.tsx):**
-- ✅ Smooth animation: button switches between MessageCircle ↔ X icons
-- ✅ Fade-in/rotate animations on icon changes
+- ✅ Conditional rendering: button hidden when widget is open, widget hidden when button is shown
+- ✅ Removed toggle logic in favor of separate open/close states
 - ✅ Only visible to authenticated non-staff users
 
 **Business Logic - Three-Tier Chat System:**
@@ -146,6 +146,36 @@ Preferred communication style: Simple, everyday language.
 - **Closed**: Permanent state; messages hidden from UI but stored in DB per 152-ФЗ (3-year retention)
 - All status transitions tracked with timestamps
 - Conversations sorted by lastMessageAt (most recent first)
+
+### 2024-11-23: UI Improvements - Compact Design & Launcher UX Fix
+
+**Admin Panel Compact Design (client/src/pages/admin/support-chat-page.tsx):**
+- ✅ Reduced all sizes by ~20% for more efficient screen space usage:
+  - CardHeader padding: `px-3 pt-3 pb-2` → `p-2` (12px → 8px)
+  - CardTitle font: `text-base` → `text-sm` (16px → 14px)
+  - All buttons: `h-7` → `h-6` (28px → 24px)
+  - Button text: `text-xs` → `text-[11px]` (12px → 11px)
+  - Icons: `h-3 w-3` → `h-2.5 w-2.5` (12px → 10px)
+  - Conversation list rows: `p-2.5` → `p-2` (10px → 8px)
+  - User ID/message text: `text-xs` → `text-[11px]`
+  - Timestamps: `text-[10px]` → `text-[9px]`
+  - Message bubbles: `px-3` → `px-2.5` (12px → 10px)
+  - Input areas: `p-3` → `p-2` (12px → 8px)
+  - Send button icon: `h-3 w-3` → `h-3.5 w-3.5`
+
+**Status Filter Redesign:**
+- ✅ Replaced horizontal 3-button layout with vertical Tabs component
+- ✅ Imported `Tabs`, `TabsList`, `TabsTrigger` from Shadcn UI
+- ✅ Vertical TabsList eliminates button overflow on small screens
+- ✅ Maintains state binding to `statusFilter` ('open' | 'archived' | 'closed')
+- ✅ Compact styling: `h-6`, `text-[11px]`, icons `h-2.5 w-2.5`
+
+**Chat Launcher Button Visibility Fix (client/src/components/support-chat-launcher.tsx):**
+- ✅ Implemented conditional rendering: `{!isOpen && <Button />}` and `{isOpen && <SupportChatWidget />}`
+- ✅ Launcher button now completely disappears when chat widget is open
+- ✅ Widget replaces button position, providing cleaner UX
+- ✅ Close button in widget header allows users to dismiss chat and restore launcher button
+- ✅ Removed `toggleChat()` function, simplified to direct `openChat()` call
 
 ### 2024-11-20: UX Improvements - Cart Badge, Quantity Controls & Fixed Positioning
 
