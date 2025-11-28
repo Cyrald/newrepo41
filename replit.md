@@ -84,3 +84,29 @@ Preferred communication style: Simple, everyday language.
 -   **Email Service:** Nodemailer
 -   **Database Service:** Neon serverless PostgreSQL
 -   **Development Tools:** Vite, Drizzle Kit, ESBuild
+
+## Recent Improvements (November 2025)
+
+### Security Hardening
+- **CSRF Protection:** Replaced deprecated `csurf` with modern `csrf-csrf` package using Double Submit Cookie Pattern with HMAC-based tokens for stateless protection
+- **WebSocket Security:** 
+  - Session validation at connection handshake (before accepting connection)
+  - IP-based connection rate limiting (10 connections/IP/minute)
+  - Per-user message rate limiting (60 messages/user/minute)
+  - Memory cleanup on disconnect to prevent leaks
+- **Environment Validation:** Production environment now validates required `FRONTEND_URL` at startup to prevent misconfigurations
+
+### Performance Optimization
+- **Database Indexes:** Added composite indexes for common query patterns:
+  - Products: `(isArchived, price)`, `(isArchived, rating)`, `(isArchived, createdAt)` for faster filtering and sorting
+  - Orders: `(status, createdAt)` for efficient order status queries
+- **Frontend Optimization:**
+  - Search debouncing (500ms) to reduce API calls during typing
+  - `useDebounce` hook for reusable debounce logic
+
+### Observability
+- **Structured Logging:** Winston logger integration with:
+  - JSON format in production for log aggregation
+  - Human-readable colored output in development
+  - Structured metadata for better debugging
+  - Error and rejection handling
