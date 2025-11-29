@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { db } from "../db";
 import { authenticateToken, requireRole } from "../auth";
 import { sql } from "drizzle-orm";
+import { userRoles } from "@shared/schema";
 
 const router = Router();
 
@@ -38,16 +39,21 @@ router.get("/stats", authenticateToken, requireRole("admin"), async (req, res) =
 
 router.get("/users", authenticateToken, requireRole("admin"), async (req, res) => {
   const users = await storage.getUsers();
+  
+  const allRoles = await db.select().from(userRoles);
+  const rolesMap = new Map<string, string[]>();
+  
+  for (const roleRecord of allRoles) {
+    if (!rolesMap.has(roleRecord.userId)) {
+      rolesMap.set(roleRecord.userId, []);
+    }
+    rolesMap.get(roleRecord.userId)!.push(roleRecord.role);
+  }
 
-  const usersWithRoles = await Promise.all(
-    users.map(async (user) => {
-      const roles = await storage.getUserRoles(user.id);
-      return {
-        ...user,
-        roles: roles.map(r => r.role),
-      };
-    })
-  );
+  const usersWithRoles = users.map((user: any) => ({
+    ...user,
+    roles: rolesMap.get(user.id) || [],
+  }));
 
   res.json(usersWithRoles);
 });

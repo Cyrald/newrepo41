@@ -37,7 +37,8 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
     hmr: {
-      clientPort: 443,
+      host: process.env.DOMAIN || "localhost",
+      port: 443,
       protocol: "wss",
     },
     fs: {

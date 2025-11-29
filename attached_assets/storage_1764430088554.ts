@@ -321,7 +321,7 @@ export class DatabaseStorage implements IStorage {
       .where(inArray(productImages.productId, productIds))
       .orderBy(productImages.sortOrder);
     
-    const imagesByProductId = allImages.reduce((acc: any, img: ProductImage) => {
+    const imagesByProductId = allImages.reduce((acc, img) => {
       if (!acc[img.productId]) acc[img.productId] = [];
       acc[img.productId].push(img);
       return acc;
@@ -360,35 +360,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProduct(id: string): Promise<void> {
-    await db.update(products).set({ isArchived: true, updatedAt: new Date() }).where(eq(products.id, id));
+    await db.update(products).set({ isArchived: true }).where(eq(products.id, id));
   }
 
   async permanentDeleteProduct(id: string): Promise<void> {
+    await db.delete(productImages).where(eq(productImages.productId, id));
     await db.delete(products).where(eq(products.id, id));
   }
 
   async incrementProductView(id: string): Promise<void> {
-    await db.execute(
-      sql`UPDATE products SET view_count = view_count + 1, updated_at = NOW() WHERE id = ${id}`
-    );
+    await db
+      .update(products)
+      .set({ viewCount: sql`${products.viewCount} + 1` })
+      .where(eq(products.id, id));
+  }
+
+  async decreaseProductStock(id: string, quantity: number): Promise<void> {
+    await db
+      .update(products)
+      .set({ 
+        stockQuantity: sql`${products.stockQuantity} - ${quantity}`,
+        updatedAt: new Date()
+      })
+      .where(eq(products.id, id));
   }
 
   async getProductImages(productId: string): Promise<ProductImage[]> {
-    return db
-      .select()
-      .from(productImages)
-      .where(eq(productImages.productId, productId))
-      .orderBy(productImages.sortOrder);
+    return db.select().from(productImages).where(eq(productImages.productId, productId)).orderBy(productImages.sortOrder);
   }
 
   async addProductImage(image: InsertProductImage): Promise<ProductImage> {
-    const [newImage] = await db.insert(productImages).values(image).returning();
-    return newImage;
+    const [productImage] = await db.insert(productImages).values(image).returning();
+    return productImage;
   }
 
   async updateProductImageOrder(imageId: string, sortOrder: number): Promise<void> {
-    await db
-      .update(productImages)
+    await db.update(productImages)
       .set({ sortOrder })
       .where(eq(productImages.id, imageId));
   }
@@ -402,26 +409,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserAddress(id: string): Promise<UserAddress | undefined> {
-    const [address] = await db
-      .select()
-      .from(userAddresses)
-      .where(eq(userAddresses.id, id))
-      .limit(1);
+    const [address] = await db.select().from(userAddresses).where(eq(userAddresses.id, id)).limit(1);
     return address;
   }
 
   async createUserAddress(address: InsertUserAddress): Promise<UserAddress> {
-    const [newAddress] = await db.insert(userAddresses).values(address).returning();
-    return newAddress;
+    const [userAddress] = await db.insert(userAddresses).values(address).returning();
+    return userAddress;
   }
 
-  async updateUserAddress(
-    id: string,
-    data: Partial<InsertUserAddress>
-  ): Promise<UserAddress | undefined> {
+  async updateUserAddress(id: string, data: Partial<InsertUserAddress>): Promise<UserAddress | undefined> {
     const [address] = await db
       .update(userAddresses)
-      .set({ ...data, updatedAt: new Date() })
+      .set(data)
       .where(eq(userAddresses.id, id))
       .returning();
     return address;
@@ -432,15 +432,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setDefaultAddress(userId: string, addressId: string): Promise<void> {
-    await db
-      .update(userAddresses)
-      .set({ isDefault: false, updatedAt: new Date() })
-      .where(and(eq(userAddresses.userId, userId), eq(userAddresses.isDefault, true)));
-
-    await db
-      .update(userAddresses)
-      .set({ isDefault: true, updatedAt: new Date() })
-      .where(eq(userAddresses.id, addressId));
+    await db.update(userAddresses).set({ isDefault: false }).where(eq(userAddresses.userId, userId));
+    await db.update(userAddresses).set({ isDefault: true }).where(eq(userAddresses.id, addressId));
   }
 
   async getUserPaymentCards(userId: string): Promise<UserPaymentCard[]> {
@@ -448,17 +441,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserPaymentCard(id: string): Promise<UserPaymentCard | undefined> {
-    const [card] = await db
-      .select()
-      .from(userPaymentCards)
-      .where(eq(userPaymentCards.id, id))
-      .limit(1);
+    const [card] = await db.select().from(userPaymentCards).where(eq(userPaymentCards.id, id)).limit(1);
     return card;
   }
 
   async createUserPaymentCard(card: InsertUserPaymentCard): Promise<UserPaymentCard> {
-    const [newCard] = await db.insert(userPaymentCards).values(card).returning();
-    return newCard;
+    const [paymentCard] = await db.insert(userPaymentCards).values(card).returning();
+    return paymentCard;
   }
 
   async deleteUserPaymentCard(id: string): Promise<void> {
@@ -466,51 +455,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setDefaultPaymentCard(userId: string, cardId: string): Promise<void> {
-    await db
-      .update(userPaymentCards)
-      .set({ isDefault: false })
-      .where(and(eq(userPaymentCards.userId, userId), eq(userPaymentCards.isDefault, true)));
-
-    await db
-      .update(userPaymentCards)
-      .set({ isDefault: true })
-      .where(eq(userPaymentCards.id, cardId));
+    await db.update(userPaymentCards).set({ isDefault: false }).where(eq(userPaymentCards.userId, userId));
+    await db.update(userPaymentCards).set({ isDefault: true }).where(eq(userPaymentCards.id, cardId));
   }
 
   async getPromocodes(): Promise<Promocode[]> {
-    return db.select().from(promocodes);
+    return db.select().from(promocodes).orderBy(desc(promocodes.createdAt));
   }
 
   async getPromocode(id: string): Promise<Promocode | undefined> {
-    const [promo] = await db
-      .select()
-      .from(promocodes)
-      .where(eq(promocodes.id, id))
-      .limit(1);
-    return promo;
+    const [promocode] = await db.select().from(promocodes).where(eq(promocodes.id, id)).limit(1);
+    return promocode;
   }
 
   async getPromocodeByCode(code: string): Promise<Promocode | undefined> {
-    const [promo] = await db
-      .select()
-      .from(promocodes)
-      .where(eq(promocodes.code, code.toUpperCase()))
-      .limit(1);
-    return promo;
+    const [promocode] = await db.select().from(promocodes).where(eq(promocodes.code, code)).limit(1);
+    return promocode;
   }
 
-  async createPromocode(promo: InsertPromocode): Promise<Promocode> {
-    const [newPromo] = await db.insert(promocodes).values(promo).returning();
-    return newPromo;
+  async createPromocode(promocode: InsertPromocode): Promise<Promocode> {
+    const [newPromocode] = await db.insert(promocodes).values(promocode).returning();
+    return newPromocode;
   }
 
   async updatePromocode(id: string, data: Partial<InsertPromocode>): Promise<Promocode | undefined> {
-    const [promo] = await db
+    const [promocode] = await db
       .update(promocodes)
       .set(data)
       .where(eq(promocodes.id, id))
       .returning();
-    return promo;
+    return promocode;
   }
 
   async deletePromocode(id: string): Promise<void> {
@@ -518,6 +492,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrders(filters?: { userId?: string; status?: string }): Promise<Order[]> {
+    let query = db.select().from(orders);
+
     const conditions = [];
     if (filters?.userId) {
       conditions.push(eq(orders.userId, filters.userId));
@@ -525,11 +501,12 @@ export class DatabaseStorage implements IStorage {
     if (filters?.status) {
       conditions.push(eq(orders.status, filters.status));
     }
-    return db
-      .select()
-      .from(orders)
-      .where(conditions.length > 0 ? and(...conditions)! : undefined)
-      .orderBy(desc(orders.createdAt));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)!) as any;
+    }
+
+    return query.orderBy(desc(orders.createdAt));
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
@@ -551,8 +528,73 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
-  async getCartItems(userId: string): Promise<CartItem[]> {
-    return db.select().from(cartItems).where(eq(cartItems.userId, userId));
+  async getCartItems(userId: string): Promise<CartItemWithProduct[]> {
+    const items = await db
+      .select({
+        id: cartItems.id,
+        userId: cartItems.userId,
+        productId: cartItems.productId,
+        quantity: cartItems.quantity,
+        addedAt: cartItems.addedAt,
+        updatedAt: cartItems.updatedAt,
+        product: products,
+      })
+      .from(cartItems)
+      .leftJoin(products, eq(cartItems.productId, products.id))
+      .where(eq(cartItems.userId, userId));
+    
+    if (items.length === 0) {
+      return [];
+    }
+    
+    const productIds = items
+      .map((item) => item.product?.id)
+      .filter((id): id is string => !!id);
+    
+    if (productIds.length === 0) {
+      return items.map(item => ({
+        id: item.id,
+        userId: item.userId,
+        productId: item.productId,
+        quantity: item.quantity,
+        addedAt: item.addedAt,
+        updatedAt: item.updatedAt,
+        product: null,
+      })) as CartItemWithProduct[];
+    }
+    
+    const allImages = await db
+      .select()
+      .from(productImages)
+      .where(inArray(productImages.productId, productIds))
+      .orderBy(productImages.sortOrder);
+    
+    const imagesByProductId = allImages.reduce((acc, img) => {
+      if (!acc[img.productId]) acc[img.productId] = [];
+      acc[img.productId].push(img);
+      return acc;
+    }, {} as Record<string, typeof allImages>);
+    
+    return items.map((item) => ({
+      id: item.id,
+      userId: item.userId,
+      productId: item.productId,
+      quantity: item.quantity,
+      addedAt: item.addedAt,
+      updatedAt: item.updatedAt,
+      product: item.product?.id ? {
+        ...item.product,
+        price: item.product.price?.toString() || "0",
+        discountPercentage: item.product.discountPercentage?.toString() || "0",
+        rating: item.product.rating?.toString() || "0",
+        weight: item.product.weight?.toString() || null,
+        volume: item.product.volume?.toString() || null,
+        dimensionsHeight: item.product.dimensionsHeight?.toString() || null,
+        dimensionsLength: item.product.dimensionsLength?.toString() || null,
+        dimensionsWidth: item.product.dimensionsWidth?.toString() || null,
+        images: imagesByProductId[item.product.id] || [],
+      } : null,
+    })) as CartItemWithProduct[];
   }
 
   async getCartItem(userId: string, productId: string): Promise<CartItem | undefined> {
@@ -565,15 +607,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addCartItem(item: InsertCartItem): Promise<CartItem> {
-    const [newItem] = await db.insert(cartItems).values(item).returning();
-    return newItem;
+    const existing = await this.getCartItem(item.userId, item.productId);
+    if (existing) {
+      const [updated] = await db
+        .update(cartItems)
+        .set({ 
+          quantity: existing.quantity + item.quantity,
+          updatedAt: new Date()
+        })
+        .where(eq(cartItems.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [cartItem] = await db.insert(cartItems).values(item).returning();
+    return cartItem;
   }
 
-  async updateCartItem(
-    userId: string,
-    productId: string,
-    quantity: number
-  ): Promise<CartItem | undefined> {
+  async updateCartItem(userId: string, productId: string, quantity: number): Promise<CartItem | undefined> {
     const [item] = await db
       .update(cartItems)
       .set({ quantity, updatedAt: new Date() })
@@ -593,12 +643,59 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getWishlistItems(userId: string): Promise<WishlistItem[]> {
-    return db.select().from(wishlistItems).where(eq(wishlistItems.userId, userId));
+    const items = await db
+      .select()
+      .from(wishlistItems)
+      .where(eq(wishlistItems.userId, userId));
+    
+    if (items.length === 0) {
+      return [];
+    }
+    
+    const uniqueProductIds = Array.from(new Set(items.map((item) => item.productId)));
+    const productsData = await db
+      .select()
+      .from(products)
+      .where(inArray(products.id, uniqueProductIds));
+    
+    const allImages = await db
+      .select()
+      .from(productImages)
+      .where(inArray(productImages.productId, uniqueProductIds))
+      .orderBy(productImages.sortOrder);
+    
+    const imagesByProductId = allImages.reduce((acc, img) => {
+      if (!acc[img.productId]) acc[img.productId] = [];
+      acc[img.productId].push(img);
+      return acc;
+    }, {} as Record<string, typeof allImages>);
+    
+    const productById = productsData.reduce((acc, p) => {
+      acc[p.id] = {
+        ...p,
+        price: p.price?.toString() || "0",
+        discountPercentage: p.discountPercentage?.toString() || "0",
+        rating: p.rating?.toString() || "0",
+        weight: p.weight?.toString() || null,
+        volume: p.volume?.toString() || null,
+        dimensionsHeight: p.dimensionsHeight?.toString() || null,
+        dimensionsLength: p.dimensionsLength?.toString() || null,
+        dimensionsWidth: p.dimensionsWidth?.toString() || null,
+      };
+      return acc;
+    }, {} as Record<string, any>);
+    
+    return items.map((item) => ({
+      ...item,
+      product: productById[item.productId] 
+        ? { ...productById[item.productId], images: imagesByProductId[item.productId] || [] }
+        : undefined,
+    })) as any;
   }
 
   async addWishlistItem(item: InsertWishlistItem): Promise<WishlistItem> {
-    const [newItem] = await db.insert(wishlistItems).values(item).returning();
-    return newItem;
+    const [wishlistItem] = await db.insert(wishlistItems).values(item).returning();
+    return wishlistItem;
   }
 
   async deleteWishlistItem(userId: string, productId: string): Promise<void> {
@@ -608,220 +705,254 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSupportMessages(userId: string): Promise<SupportMessage[]> {
+    return db.select().from(supportMessages).where(eq(supportMessages.userId, userId)).orderBy(supportMessages.createdAt);
+  }
+
+  async getAllSupportConversations(status?: 'open' | 'archived' | 'closed'): Promise<{ userId: string; lastMessage: SupportMessage; status: string; archivedAt: Date | null; closedAt: Date | null }[]> {
+    let conversationQuery = db.select().from(supportConversations);
+    
+    if (status) {
+      conversationQuery = conversationQuery.where(eq(supportConversations.status, status)) as any;
+    }
+    
+    const allConversations = await conversationQuery.orderBy(desc(supportConversations.lastMessageAt));
+    
+    if (allConversations.length === 0) {
+      return [];
+    }
+    
+    const userIds = allConversations.map(c => c.userId);
     const messages = await db
       .select()
       .from(supportMessages)
-      .where(eq(supportMessages.userId, userId))
+      .where(sql`${supportMessages.userId} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`)
       .orderBy(desc(supportMessages.createdAt));
     
-    return Promise.all(
-      messages.map(async (msg) => {
-        const attachments = await this.getSupportMessageAttachments(msg.id);
-        return { ...msg, attachments } as any;
-      })
-    );
-  }
-
-  async getAllSupportConversations(status?: 'open' | 'archived' | 'closed'): Promise<any[]> {
-    const conditions = [];
-    if (status === 'archived') {
-      conditions.push(eq(supportConversations.archivedAt, sql`NOT NULL`));
-    } else if (status === 'closed') {
-      conditions.push(eq(supportConversations.closedAt, sql`NOT NULL`));
-    } else if (status === 'open') {
-      conditions.push(eq(supportConversations.closedAt, null));
-      conditions.push(eq(supportConversations.archivedAt, null));
+    const lastMessageByUserId: Record<string, SupportMessage> = {};
+    for (const message of messages) {
+      if (!lastMessageByUserId[message.userId]) {
+        lastMessageByUserId[message.userId] = message;
+      }
     }
-
-    const convs = await db
-      .select()
-      .from(supportConversations)
-      .where(conditions.length > 0 ? and(...conditions)! : undefined)
-      .orderBy(desc(supportConversations.updatedAt));
-
-    return Promise.all(
-      convs.map(async (conv) => {
-        const [lastMsg] = await db
-          .select()
-          .from(supportMessages)
-          .where(eq(supportMessages.userId, conv.userId))
-          .orderBy(desc(supportMessages.createdAt))
-          .limit(1);
-
-        return {
+    
+    const result = [];
+    for (const conv of allConversations) {
+      const lastMessage = lastMessageByUserId[conv.userId];
+      if (lastMessage) {
+        result.push({
           userId: conv.userId,
-          lastMessage: lastMsg,
-          status: conv.closedAt ? 'closed' : conv.archivedAt ? 'archived' : 'open',
+          lastMessage,
+          status: conv.status,
           archivedAt: conv.archivedAt,
-          closedAt: conv.closedAt,
-        };
-      })
-    );
+          closedAt: conv.closedAt
+        });
+      }
+    }
+    
+    return result;
   }
 
   async createSupportMessage(message: InsertSupportMessage): Promise<SupportMessage> {
-    const [newMsg] = await db.insert(supportMessages).values(message).returning();
-    return newMsg;
+    const [supportMessage] = await db.insert(supportMessages).values(message).returning();
+    return supportMessage;
   }
 
   async markMessageAsRead(id: string): Promise<void> {
-    await db
-      .update(supportMessages)
-      .set({ isRead: true, updatedAt: new Date() })
-      .where(eq(supportMessages.id, id));
+    await db.update(supportMessages).set({ isRead: true }).where(eq(supportMessages.id, id));
   }
 
   async getSupportMessageAttachments(messageId: string): Promise<SupportMessageAttachment[]> {
-    return db
-      .select()
-      .from(supportMessageAttachments)
-      .where(eq(supportMessageAttachments.messageId, messageId));
+    return db.select().from(supportMessageAttachments).where(eq(supportMessageAttachments.messageId, messageId));
   }
 
-  async addSupportMessageAttachment(
-    attachment: InsertSupportMessageAttachment
-  ): Promise<SupportMessageAttachment> {
-    const [newAttachment] = await db
-      .insert(supportMessageAttachments)
-      .values(attachment)
-      .returning();
-    return newAttachment;
+  async addSupportMessageAttachment(attachment: InsertSupportMessageAttachment): Promise<SupportMessageAttachment> {
+    const [messageAttachment] = await db.insert(supportMessageAttachments).values(attachment).returning();
+    return messageAttachment;
   }
 
   async deleteSupportMessageAttachment(id: string): Promise<void> {
     await db.delete(supportMessageAttachments).where(eq(supportMessageAttachments.id, id));
   }
 
-  async getOrCreateConversation(userId: string): Promise<SupportConversation> {
-    let conv = await this.getSupportConversation(userId);
-    if (!conv) {
-      [conv] = await db
-        .insert(supportConversations)
-        .values({ userId })
-        .returning();
-    }
-    return conv;
-  }
-
   async getSupportConversation(userId: string): Promise<SupportConversation | undefined> {
-    const [conv] = await db
+    const [conversation] = await db
       .select()
       .from(supportConversations)
       .where(eq(supportConversations.userId, userId))
       .limit(1);
-    return conv;
+    return conversation;
+  }
+
+  async getOrCreateConversation(userId: string): Promise<SupportConversation> {
+    // Get active conversation for user
+    const [existing] = await db
+      .select()
+      .from(supportConversations)
+      .where(and(
+        eq(supportConversations.userId, userId),
+        eq(supportConversations.status, 'open')
+      ))
+      .limit(1);
+    
+    if (existing) {
+      return existing;
+    }
+    
+    // Check if there's an archived conversation - reopen it
+    const [archived] = await db
+      .select()
+      .from(supportConversations)
+      .where(and(
+        eq(supportConversations.userId, userId),
+        eq(supportConversations.status, 'archived')
+      ))
+      .limit(1);
+    
+    if (archived) {
+      const [reopened] = await db
+        .update(supportConversations)
+        .set({ status: 'open', archivedAt: null, lastMessageAt: new Date(), updatedAt: new Date() })
+        .where(eq(supportConversations.id, archived.id))
+        .returning();
+      return reopened;
+    }
+    
+    // If closed, create new conversation
+    const [conversation] = await db
+      .insert(supportConversations)
+      .values({ userId, status: 'open' })
+      .returning();
+    return conversation;
   }
 
   async getActiveConversation(userId: string): Promise<SupportConversation | undefined> {
-    const [conv] = await db
+    const [conversation] = await db
       .select()
       .from(supportConversations)
-      .where(
-        and(
-          eq(supportConversations.userId, userId),
-          eq(supportConversations.closedAt, null),
-          eq(supportConversations.archivedAt, null)
+      .where(and(
+        eq(supportConversations.userId, userId),
+        or(
+          eq(supportConversations.status, 'open'),
+          eq(supportConversations.status, 'archived')
         )
-      )
+      ))
+      .orderBy(desc(supportConversations.lastMessageAt))
       .limit(1);
-    return conv;
+    
+    return conversation;
   }
 
-  async getConversationStatus(
-    userId: string
-  ): Promise<{ status: string } | undefined> {
-    const conv = await this.getSupportConversation(userId);
-    if (!conv) return undefined;
-    return {
-      status: conv.closedAt ? 'closed' : conv.archivedAt ? 'archived' : 'open',
-    };
+  async getConversationStatus(userId: string): Promise<{ status: string } | undefined> {
+    const conversation = await this.getActiveConversation(userId);
+    return conversation ? { status: conversation.status } : undefined;
   }
 
   async archiveConversation(userId: string): Promise<void> {
-    await db
-      .update(supportConversations)
-      .set({ archivedAt: new Date(), updatedAt: new Date() })
-      .where(eq(supportConversations.userId, userId));
+    const conversation = await this.getActiveConversation(userId);
+    if (conversation) {
+      await db
+        .update(supportConversations)
+        .set({ status: 'archived', archivedAt: new Date(), updatedAt: new Date() })
+        .where(eq(supportConversations.id, conversation.id));
+    }
   }
 
   async closeConversation(userId: string): Promise<void> {
-    await db
-      .update(supportConversations)
-      .set({ closedAt: new Date(), updatedAt: new Date() })
-      .where(eq(supportConversations.userId, userId));
+    const conversation = await this.getActiveConversation(userId);
+    if (conversation) {
+      await db
+        .update(supportConversations)
+        .set({ status: 'closed', closedAt: new Date(), updatedAt: new Date() })
+        .where(eq(supportConversations.id, conversation.id));
+    }
   }
 
   async reopenConversation(userId: string): Promise<void> {
-    await db
-      .update(supportConversations)
-      .set({ closedAt: null, archivedAt: null, updatedAt: new Date() })
-      .where(eq(supportConversations.userId, userId));
+    const [conversation] = await db
+      .select()
+      .from(supportConversations)
+      .where(and(
+        eq(supportConversations.userId, userId),
+        eq(supportConversations.status, 'archived')
+      ))
+      .limit(1);
+    
+    if (conversation) {
+      await db
+        .update(supportConversations)
+        .set({ status: 'open', archivedAt: null, lastMessageAt: new Date(), updatedAt: new Date() })
+        .where(eq(supportConversations.id, conversation.id));
+    }
   }
 
   async updateLastMessageTime(userId: string): Promise<void> {
-    await db
-      .update(supportConversations)
-      .set({ updatedAt: new Date() })
-      .where(eq(supportConversations.userId, userId));
+    const conversation = await this.getActiveConversation(userId);
+    if (conversation) {
+      await db
+        .update(supportConversations)
+        .set({ lastMessageAt: new Date(), updatedAt: new Date() })
+        .where(eq(supportConversations.id, conversation.id));
+    }
   }
 
-  async searchClosedConversations(filters: {
-    email?: string;
-    dateFrom?: Date;
-    dateTo?: Date;
-  }): Promise<any[]> {
-    const conditions = [eq(supportConversations.closedAt, sql`NOT NULL`)];
-
+  async searchClosedConversations(filters: { email?: string; dateFrom?: Date; dateTo?: Date }): Promise<{ userId: string; lastMessage: SupportMessage; status: string; closedAt: Date | null }[]> {
+    const conditions: ReturnType<typeof eq>[] = [eq(supportConversations.status, 'closed')];
+    
     if (filters.email) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(like(users.email, `%${filters.email}%`))
-        .limit(1);
-      if (user) {
-        conditions.push(eq(supportConversations.userId, user.id));
-      }
+      const sanitizedEmail = filters.email.replace(/[%_\\]/g, '\\$&');
+      conditions.push(like(users.email, `%${sanitizedEmail}%`));
     }
-
+    
     if (filters.dateFrom) {
       conditions.push(gte(supportConversations.closedAt, filters.dateFrom));
     }
+    
     if (filters.dateTo) {
       conditions.push(lte(supportConversations.closedAt, filters.dateTo));
     }
-
-    const convs = await db
-      .select()
-      .from(supportConversations)
-      .where(and(...conditions)!)
-      .orderBy(desc(supportConversations.closedAt));
-
-    return Promise.all(
-      convs.map(async (conv) => {
-        const [lastMsg] = await db
-          .select()
-          .from(supportMessages)
-          .where(eq(supportMessages.userId, conv.userId))
-          .orderBy(desc(supportMessages.createdAt))
-          .limit(1);
-
-        return {
-          userId: conv.userId,
-          lastMessage: lastMsg,
-          status: 'closed',
-          closedAt: conv.closedAt,
-        };
+    
+    const results = await db
+      .select({
+        conversation: supportConversations,
+        user: users
       })
-    );
+      .from(supportConversations)
+      .innerJoin(users, eq(supportConversations.userId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(supportConversations.closedAt));
+    
+    const finalResults = [];
+    
+    for (const { conversation } of results) {
+      const [lastMessage] = await db
+        .select()
+        .from(supportMessages)
+        .where(eq(supportMessages.userId, conversation.userId))
+        .orderBy(desc(supportMessages.createdAt))
+        .limit(1);
+      
+      if (lastMessage) {
+        finalResults.push({
+          userId: conversation.userId,
+          lastMessage,
+          status: conversation.status,
+          closedAt: conversation.closedAt
+        });
+      }
+    }
+    
+    return finalResults;
   }
 
   async deleteOldMessages(olderThanDays: number): Promise<number> {
-    const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
+    const dateThreshold = new Date();
+    dateThreshold.setDate(dateThreshold.getDate() - olderThanDays);
+    
     const result = await db
       .delete(supportMessages)
-      .where(lte(supportMessages.createdAt, cutoffDate))
-      .returning();
-    return result.length;
+      .where(lte(supportMessages.createdAt, dateThreshold));
+    
+    return result.rowCount || 0;
   }
 }
 

@@ -91,6 +91,9 @@ app.use(express.urlencoded({
   
   app.get('/api/csrf-token', csrfTokenEndpoint);
   
+  const webhooksRoutes = await import('./routes/webhooks.routes');
+  app.use('/api/webhooks', webhooksRoutes.default);
+  
   app.use('/api', csrfMiddleware);
   
   const server = await registerRoutes(app);
