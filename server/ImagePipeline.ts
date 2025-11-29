@@ -242,7 +242,26 @@ export class ImagePipeline {
   }
 
   async deleteImage(filename: string): Promise<void> {
+    if (!filename || typeof filename !== 'string') {
+      throw new Error('Invalid filename parameter');
+    }
+
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      throw new Error('Invalid filename: path traversal detected');
+    }
+
+    if (filename.startsWith('.')) {
+      throw new Error('Invalid filename: hidden files not allowed');
+    }
+
     const filePath = path.join(this.uploadsDir, filename);
+    
+    const resolvedPath = path.resolve(filePath);
+    const resolvedUploadsDir = path.resolve(this.uploadsDir);
+    
+    if (!resolvedPath.startsWith(resolvedUploadsDir + path.sep) && resolvedPath !== resolvedUploadsDir) {
+      throw new Error('Path traversal attempt detected');
+    }
     
     try {
       await fs.unlink(filePath);

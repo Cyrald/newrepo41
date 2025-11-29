@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { promocodes, promocodeUsage } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface ValidatePromocodeResult {
   valid: boolean;
@@ -87,23 +87,34 @@ export async function applyPromocode(
   userId: string,
   orderId: string
 ): Promise<void> {
-  const [promocode] = await db
-    .select()
-    .from(promocodes)
-    .where(eq(promocodes.id, promocodeId))
-    .limit(1);
+  await db.transaction(async (tx) => {
+    const result = await tx.execute(
+      sql`SELECT * FROM ${promocodes} 
+          WHERE ${promocodes.id} = ${promocodeId} 
+          FOR UPDATE`
+    );
 
-  if (!promocode) {
-    throw new Error("Промокод не найден");
-  }
+    if (!result.rows || result.rows.length === 0) {
+      throw new Error("Промокод не найден");
+    }
 
-  if (promocode.type === "single_use") {
-    await db.delete(promocodes).where(eq(promocodes.id, promocodeId));
-  } else if (promocode.type === "temporary") {
-    await db.insert(promocodeUsage).values({
-      promocodeId,
-      userId,
-      orderId,
-    });
-  }
+    const promocode = result.rows[0] as any;
+
+    if (promocode.type === "single_use") {
+      const deleteResult = await tx
+        .delete(promocodes)
+        .where(eq(promocodes.id, promocodeId))
+        .returning();
+
+      if (deleteResult.length === 0) {
+        throw new Error("Промокод уже использован");
+      }
+    } else if (promocode.type === "temporary") {
+      await tx.insert(promocodeUsage).values({
+        promocodeId,
+        userId,
+        orderId,
+      });
+    }
+  });
 }
