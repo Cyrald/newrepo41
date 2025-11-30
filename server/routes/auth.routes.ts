@@ -9,6 +9,7 @@ import { logLoginAttempt, logRegistration } from "../utils/securityLogger";
 import { logger } from "../utils/logger";
 import { invalidateAllUserSessions } from "../utils/sessionManager";
 import { validatePassword } from "../utils/sanitize";
+import { initializeSessionWithUser } from "../utils/sessionUtils";
 
 const router = Router();
 
@@ -51,42 +52,34 @@ router.post("/register", registerLimiter, async (req, res) => {
   const roles = await storage.getUserRoles(user.id);
   const roleNames = roles.map(r => r.role);
   
-  req.session.regenerate((err) => {
-    if (err) {
-      logger.error('Session regeneration error during registration', { error: err.message });
-      return res.status(500).json({ message: "Ошибка регистрации" });
-    }
+  try {
+    // Initialize session with proper async/await
+    // This GUARANTEES session is saved to DB before response
+    await initializeSessionWithUser(req, user.id, roleNames);
     
-    req.session.userId = user.id;
-    req.session.userRoles = roleNames;
-    
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        logger.error('Session save error during registration', { error: saveErr.message });
-        return res.status(500).json({ message: "Ошибка регистрации" });
-      }
-      
-      logRegistration({
-        email: user.email,
-        userId: user.id,
-        ip: req.ip,
-        userAgent: req.get('user-agent'),
-      });
-
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phone: user.phone,
-          isVerified: user.isVerified,
-          bonusBalance: user.bonusBalance,
-          roles: roleNames,
-        },
-      });
+    logRegistration({
+      email: user.email,
+      userId: user.id,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
     });
-  });
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        isVerified: user.isVerified,
+        bonusBalance: user.bonusBalance,
+        roles: roleNames,
+      },
+    });
+  } catch (error) {
+    logger.error('Session initialization failed during registration', { error });
+    return res.status(500).json({ message: "Ошибка регистрации" });
+  }
 });
 
 router.post("/login", authLimiter, async (req, res) => {
@@ -115,43 +108,35 @@ router.post("/login", authLimiter, async (req, res) => {
   const roles = await storage.getUserRoles(user.id);
   const roleNames = roles.map(r => r.role);
   
-  req.session.regenerate((err) => {
-    if (err) {
-      logger.error('Session regeneration error during login', { error: err.message });
-      return res.status(500).json({ message: "Ошибка входа" });
-    }
+  try {
+    // Initialize session with proper async/await
+    // This GUARANTEES session is saved to DB before response
+    await initializeSessionWithUser(req, user.id, roleNames);
     
-    req.session.userId = user.id;
-    req.session.userRoles = roleNames;
-    
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        logger.error('Session save error during login', { error: saveErr.message });
-        return res.status(500).json({ message: "Ошибка входа" });
-      }
-      
-      logLoginAttempt({
-        email: user.email,
-        userId: user.id,
-        success: true,
-        ip: req.ip,
-        userAgent: req.get('user-agent'),
-      });
-
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phone: user.phone,
-          isVerified: user.isVerified,
-          bonusBalance: user.bonusBalance,
-          roles: roleNames,
-        },
-      });
+    logLoginAttempt({
+      email: user.email,
+      userId: user.id,
+      success: true,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
     });
-  });
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        isVerified: user.isVerified,
+        bonusBalance: user.bonusBalance,
+        roles: roleNames,
+      },
+    });
+  } catch (error) {
+    logger.error('Session initialization failed during login', { error });
+    return res.status(500).json({ message: "Ошибка входа" });
+  }
 });
 
 router.post("/logout", authenticateToken, async (req, res) => {

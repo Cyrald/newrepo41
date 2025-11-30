@@ -9,7 +9,19 @@ const {
   doubleCsrfProtection,
 } = doubleCsrf({
   getSecret: () => env.SESSION_SECRET,
-  getSessionIdentifier: (req: Request) => req.session?.id || req.sessionID || 'anonymous',
+  // Use connect-pg-simple session ID format (sid column)
+  getSessionIdentifier: (req: Request) => {
+    const sessionId = req.sessionID || req.session?.id;
+    
+    if (!sessionId) {
+      logger.warn('No session identifier available for CSRF validation', {
+        hasSession: !!req.session,
+        hasSessionID: !!req.sessionID,
+      });
+    }
+    
+    return sessionId || 'anonymous';
+  },
   cookieName: 'csrf-token',
   cookieOptions: {
     httpOnly: false,
