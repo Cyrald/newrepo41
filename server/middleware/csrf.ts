@@ -27,6 +27,11 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction):
     return next();
   }
   
+  // Skip CSRF for auth endpoints (login/register handle session changes)
+  if (req.path === '/api/auth/login' || req.path === '/api/auth/register') {
+    return next();
+  }
+  
   doubleCsrfProtection(req, res, (err) => {
     if (err) {
       if (err === invalidCsrfTokenError) {
