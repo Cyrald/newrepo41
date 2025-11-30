@@ -33,7 +33,7 @@ const {
     httpOnly: false,
     secure: env.NODE_ENV === 'production',
     sameSite: env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // Same as session cookie (30 days)
+    maxAge: 14 * 24 * 60 * 60 * 1000, // Same as session cookie (14 days)
   },
   size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],

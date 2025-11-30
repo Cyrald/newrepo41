@@ -11,6 +11,7 @@ import { requestLogger } from "./middleware/requestLogger";
 import { errorHandler } from "./middleware/errorHandler";
 import { generalApiLimiter } from "./middleware/rateLimiter";
 import { csrfMiddleware, csrfTokenEndpoint } from "./middleware/csrf";
+import { sessionRefreshMiddleware } from "./middleware/sessionRefresh";
 import { logger } from "./utils/logger";
 import { pool } from "./db";
 import { startDataRetentionScheduler } from "./scheduler";
@@ -61,6 +62,7 @@ app.use(helmet({
 app.use(requestLogger);
 app.use(cookieParser());
 app.use(sessionMiddleware);
+app.use(sessionRefreshMiddleware); // Level 3: Refresh session TTL on every request
 
 if (env.NODE_ENV === 'development') {
   app.use((req, res, next) => {

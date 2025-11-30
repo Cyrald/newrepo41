@@ -58,6 +58,15 @@ router.post("/register", registerLimiter, async (req, res) => {
     // This GUARANTEES session is saved to DB before response
     await initializeSessionWithUser(req, user.id, roleNames);
     
+    // Level 2: Log session creation with TTL info
+    const sessionExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    logger.info('Session initialized with TTL', {
+      userId: user.id,
+      sessionId: req.sessionID,
+      expiresAt: sessionExpiresAt.toISOString(),
+      ttlDays: 14,
+    });
+    
     // Generate CSRF token AFTER session is fully initialized
     // This ensures token is tied to the correct sessionId
     const csrfToken = generateCsrfToken(req, res);
@@ -118,6 +127,15 @@ router.post("/login", authLimiter, async (req, res) => {
     // Initialize session with proper async/await
     // This GUARANTEES session is saved to DB before response
     await initializeSessionWithUser(req, user.id, roleNames);
+    
+    // Level 2: Log session creation with TTL info
+    const sessionExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    logger.info('Session initialized with TTL', {
+      userId: user.id,
+      sessionId: req.sessionID,
+      expiresAt: sessionExpiresAt.toISOString(),
+      ttlDays: 14,
+    });
     
     // Generate CSRF token AFTER session is fully initialized
     // This ensures token is tied to the correct sessionId
