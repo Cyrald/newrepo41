@@ -36,11 +36,24 @@ export default defineConfig({
     port: 5000,
     strictPort: true,
     allowedHosts: true,
-    hmr: {
-      host: process.env.DOMAIN || "localhost",
-      port: 443,
-      protocol: "wss",
-    },
+    // HMR конфигурация для разработки
+    // На Replit/development: Vite будет использовать window.location.host автоматически
+    // На production (VPS): установи DOMAIN env переменную
+    hmr: process.env.NODE_ENV === "production" 
+      ? false // Отключи HMR на production (не нужен для production-ready apps)
+      : process.env.DOMAIN 
+        ? {
+            // VPS deployment: используй явно указанный домен
+            host: process.env.DOMAIN,
+            port: 443,
+            protocol: "wss",
+          }
+        : {
+            // Development (Replit): Vite автоматически определит host из текущей страницы
+            // Vite это обработает правильно без явного host указания
+            protocol: "wss",
+            port: 443,
+          },
     fs: {
       strict: true,
       deny: ["**/.*"],
