@@ -43,11 +43,12 @@ Preferred communication style: Simple, everyday language.
 - WebSocket (ws) for real-time communication
 
 **Authentication & Security:**
-- Session-based authentication using express-session with PostgreSQL storage (connect-pg-simple)
+- Pure JWT authentication (httpOnly cookies: accessToken 15min, refreshToken 7 days)
+- Token versioning for ban/logout scenarios (invalidates all client sessions)
 - bcrypt for password hashing with timing-attack protection
-- CSRF protection via csrf-csrf library (double-submit cookie pattern)
+- Double-submit cookie pattern (httpOnly + SameSite: strict replaces CSRF tokens)
 - Role-based access control (admin, marketer, consultant, customer)
-- Rate limiting on sensitive endpoints (express-rate-limit)
+- Rate limiting: auth 15/15min, register 5/hour, uploads 30/hour, refresh 100/15min
 - Helmet for security headers
 - Input sanitization and validation via Zod schemas
 - Path traversal protection for file operations
@@ -77,21 +78,23 @@ Preferred communication style: Simple, everyday language.
 
 **WebSocket Architecture:**
 - Persistent connections for support chat
-- Cookie-based session authentication for WebSocket handshake
+- JWT accessToken authentication for WebSocket handshake (from httpOnly cookies)
+- Token versioning validation (rejects connections after logout/ban)
 - Connection rate limiting (10 connections per minute)
 - Message rate limiting (60 messages per minute)
 - Automatic reconnection handling on client side
 - Real-time order status updates pushed to admin users
+- WebSocket cleanup on logout and admin ban operations
 
 **Database Schema Design:**
-- User management with email verification
+- User management with email verification and token versioning
 - Role-based permissions via join table
 - Product catalog with categories and multi-image support
 - Shopping cart with product relationships
 - Order system with itemized details stored as JSONB
 - Promocode usage tracking
 - Support conversation threading
-- Session storage via connect-pg-simple
+- Refresh tokens table (JTI-based, indexed by expiry for cleanup)
 - Idempotency keys table for duplicate request prevention
 
 ## External Dependencies
@@ -121,10 +124,12 @@ Preferred communication style: Simple, everyday language.
 - Winston for structured logging
 - TypeScript for type safety across frontend and backend
 
-**Session Storage:**
-- PostgreSQL-backed sessions via connect-pg-simple
-- 30-day session lifetime
+**Token Storage:**
+- Refresh tokens stored in PostgreSQL with JTI (JWT ID) for revocation
+- AccessToken: 15-minute lifetime, stored in httpOnly secure cookie
+- RefreshToken: 7-day lifetime, stored in httpOnly secure cookie at /api/auth path
 - Secure cookies in production (httpOnly, sameSite: strict)
+- Token versioning in users table for instant invalidation (ban, logout, password change)
 
 **File Storage:**
 - Local filesystem for product and chat images
@@ -133,6 +138,11 @@ Preferred communication style: Simple, everyday language.
 
 **Rate Limiting & Security:**
 - express-rate-limit for API endpoints
-- Different limits for auth (15/15min), registration (5/hour), uploads (30/hour)
-- Search endpoint limited to 60 requests/minute
+- Auth endpoints: 15 attempts/15min (login)
+- Registration: 5 attempts/hour
+- Uploads: 30/hour
+- Token refresh: 100/15min
+- Search endpoint: 60/minute
 - CORS configured for production with whitelist validation
+- Security headers via Helmet
+- HTTPS enforced in production, httpOnly + secure + sameSite cookies
