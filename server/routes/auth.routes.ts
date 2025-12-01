@@ -68,7 +68,7 @@ router.post("/register", registerLimiter, async (req, res) => {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 15 * 60 * 1000,
     path: '/',
   });
@@ -76,9 +76,15 @@ router.post("/register", registerLimiter, async (req, res) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/api/auth',
+    path: '/',
+  });
+  
+  logger.info('Register cookies set', {
+    userId: user.id,
+    accessTokenSet: !!accessToken,
+    refreshTokenSet: !!refreshToken,
   });
   
   logRegistration({
@@ -143,7 +149,7 @@ router.post("/login", authLimiter, async (req, res) => {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 15 * 60 * 1000,
     path: '/',
   });
@@ -151,9 +157,15 @@ router.post("/login", authLimiter, async (req, res) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/api/auth',
+    path: '/',
+  });
+  
+  logger.info('Login cookies set', {
+    userId: user.id,
+    accessTokenSet: !!accessToken,
+    refreshTokenSet: !!refreshToken,
   });
   
   logLoginAttempt({
@@ -200,14 +212,14 @@ router.post("/logout", authenticateToken, async (req, res) => {
     invalidateUserCache(req.userId!);
     
     res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    res.clearCookie('refreshToken', { path: '/' });
     
     res.json({ message: "Выход выполнен" });
   } catch (error) {
     logger.error('Logout error', { error });
     
     res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    res.clearCookie('refreshToken', { path: '/' });
     
     res.status(500).json({ message: "Ошибка выхода" });
   }
@@ -259,7 +271,7 @@ router.post("/refresh", refreshTokenLimiter, async (req, res) => {
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
       path: '/',
     });
@@ -267,9 +279,15 @@ router.post("/refresh", refreshTokenLimiter, async (req, res) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/api/auth',
+      path: '/',
+    });
+    
+    logger.info('Refresh tokens rotated', {
+      userId: user.id,
+      newAccessTokenSet: !!newAccessToken,
+      newRefreshTokenSet: !!newRefreshToken,
     });
     
     res.json({ success: true });
@@ -489,7 +507,7 @@ router.delete("/account", authenticateToken, passwordChangeLimiter, async (req, 
     invalidateUserCache(req.userId!);
 
     res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    res.clearCookie('refreshToken', { path: '/' });
     
     logger.info('User account deleted', { 
       userId: req.userId,
