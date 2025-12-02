@@ -6,6 +6,9 @@ const envSchema = z.object({
   PORT: z.string().default('5000'),
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
   
+  JWT_SECRET: z.string().min(32),
+  JWT_REFRESH_SECRET: z.string().min(32),
+  
   FRONTEND_URL: z.string().url().optional(),
   REPLIT_DEV_DOMAIN: z.string().optional(),
   
