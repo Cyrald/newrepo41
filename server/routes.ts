@@ -27,19 +27,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
 
-  async function validateJWTFromCookie(cookieHeader: string | undefined): Promise<{ userId: string; userRoles: string[] } | null> {
-    if (!cookieHeader) return null;
-    
-    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=');
-      if (key && value) acc[key] = value;
-      return acc;
-    }, {} as Record<string, string>);
-    
-    const token = cookies['accessToken'];
-    if (!token) return null;
+  async function validateJWTFromQuery(url: string | undefined): Promise<{ userId: string; userRoles: string[] } | null> {
+    if (!url) return null;
     
     try {
+      const urlParams = new URL(url, 'http://localhost').searchParams;
+      const token = urlParams.get('token');
+      
+      if (!token) return null;
+      
       const payload = verifyAccessToken(token);
       
       const userStatus = await getUserStatus(payload.userId);
@@ -149,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ipLimit.count++;
     connectionRateLimits.set(clientIp, ipLimit);
     
-    const jwtData = await validateJWTFromCookie(req.headers.cookie);
+    const jwtData = await validateJWTFromQuery(req.url);
     
     if (!jwtData) {
       logger.warn('WebSocket connection rejected - invalid JWT', { clientIp });

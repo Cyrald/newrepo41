@@ -21,13 +21,11 @@ export interface RefreshTokenPayload {
 }
 
 function getPrivateKey(): string {
-  const key = Buffer.from(env.JWT_PRIVATE_KEY, 'base64').toString('utf-8');
-  return key;
+  return env.JWT_PRIVATE_KEY;
 }
 
 function getPublicKey(): string {
-  const key = Buffer.from(env.JWT_PUBLIC_KEY, 'base64').toString('utf-8');
-  return key;
+  return env.JWT_PUBLIC_KEY;
 }
 
 export function generateAccessToken(
@@ -41,7 +39,7 @@ export function generateAccessToken(
       { userId, roles, tfid, v: tokenVersion },
       getPrivateKey(),
       { 
-        algorithm: 'ES256' as const,
+        algorithm: 'RS256' as const,
         expiresIn: env.JWT_ACCESS_EXPIRE
       } as jwt.SignOptions
     );
@@ -61,7 +59,7 @@ export function generateRefreshToken(userId: string, tfid: string): { token: str
       { userId, jti, tfid },
       getPrivateKey(),
       { 
-        algorithm: 'ES256' as const,
+        algorithm: 'RS256' as const,
         expiresIn: env.JWT_REFRESH_EXPIRE
       } as jwt.SignOptions
     );
@@ -77,7 +75,7 @@ export function generateRefreshToken(userId: string, tfid: string): { token: str
 export function verifyAccessToken(token: string): AccessTokenPayload {
   try {
     const payload = jwt.verify(token, getPublicKey(), {
-      algorithms: ['ES256']
+      algorithms: ['RS256']
     }) as AccessTokenPayload;
     
     return payload;
@@ -96,7 +94,7 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
   try {
     const payload = jwt.verify(token, getPublicKey(), {
-      algorithms: ['ES256']
+      algorithms: ['RS256']
     }) as RefreshTokenPayload;
     
     return payload;

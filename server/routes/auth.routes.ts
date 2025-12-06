@@ -243,6 +243,57 @@ router.get("/me", authenticateToken, async (req, res) => {
   }
 });
 
+router.put("/profile", authenticateToken, async (req, res) => {
+  try {
+    const { firstName, lastName, patronymic, phone } = req.body;
+    
+    const updates: any = {};
+    if (firstName !== undefined) updates.firstName = firstName;
+    if (lastName !== undefined) updates.lastName = lastName;
+    if (patronymic !== undefined) updates.patronymic = patronymic;
+    if (phone !== undefined) updates.phone = phone;
+    
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ 
+        message: "Нет данных для обновления",
+        code: "NO_UPDATES"
+      });
+    }
+    
+    const [updatedUser] = await db.update(users)
+      .set(updates)
+      .where(eq(users.id, req.userId!))
+      .returning();
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
+    
+    const roles = await db.select().from(userRoles).where(eq(userRoles.userId, req.userId!));
+    const roleNames = roles.map(r => r.role);
+    
+    res.json({
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        patronymic: updatedUser.patronymic,
+        phone: updatedUser.phone,
+        isVerified: updatedUser.isVerified,
+        bonusBalance: updatedUser.bonusBalance,
+        roles: roleNames,
+      },
+    });
+  } catch (error) {
+    logger.error('Update profile error', { error });
+    res.status(500).json({ 
+      message: "Ошибка обновления профиля",
+      code: "UPDATE_PROFILE_ERROR"
+    });
+  }
+});
+
 router.put("/password", authenticateToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;

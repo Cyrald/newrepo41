@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/queryClient"
+import { getAccessToken } from "@/lib/api"
 import { wsClient } from "@/lib/websocket"
 import { useAuthStore } from "@/stores/authStore"
 import { AdminLayout } from "@/components/admin-layout"
@@ -220,7 +221,10 @@ export default function AdminSupportChatPage() {
 
   useEffect(() => {
     if (user?.id) {
-      wsClient.connect(user.id)
+      const accessToken = getAccessToken()
+      if (accessToken) {
+        wsClient.connect(user.id, accessToken)
+      }
 
       const unsubscribe = wsClient.onMessage((msg) => {
         if (msg.type === "new_message" && msg.message) {

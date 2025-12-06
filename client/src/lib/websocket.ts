@@ -12,44 +12,40 @@ class WebSocketClient {
   private maxReconnectAttempts = 5;
   private messageHandlers: Set<MessageHandler> = new Set();
   private userId: string | null = null;
+  private accessToken: string | null = null;
 
   /**
    * Get the WebSocket URL safely - works on VPS and development environments
    */
-  private getWebSocketUrl(): string {
+  private getWebSocketUrl(token: string): string {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     
     // Use window.location.host which includes both hostname and port
     // If host is empty (shouldn't happen), fallback to localhost:5000
     const host = window.location.host || "localhost:5000";
     
-    console.log('[WebSocket] Connecting to:', `${protocol}//${host}/ws`);
-    return `${protocol}//${host}/ws`;
+    const wsUrl = `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
+    console.log('[WebSocket] Connecting to:', wsUrl.replace(token, '[REDACTED]'));
+    return wsUrl;
   }
 
-  connect(userId: string) {
+  connect(userId: string, accessToken: string) {
     if (this.socket?.readyState === WebSocket.OPEN) {
       console.log('[WebSocket] Already connected');
       return;
     }
 
     this.userId = userId;
+    this.accessToken = accessToken;
     
     try {
-      const wsUrl = this.getWebSocketUrl();
-      console.log('[WebSocket] Creating connection to:', wsUrl);
+      const wsUrl = this.getWebSocketUrl(accessToken);
+      console.log('[WebSocket] Creating connection');
       
       this.socket = new WebSocket(wsUrl);
       
       this.socket.onopen = () => {
-        console.log('[WebSocket] Connected, sending auth...');
-        
-        // Send authentication message with userId
-        // This is sent AFTER connection, not in URL (more secure than URL params)
-        this.socket?.send(JSON.stringify({
-          type: 'auth',
-          userId: userId,
-        }));
+        console.log('[WebSocket] Connected successfully');
         
         this.reconnectAttempts = 0;
       };
@@ -92,14 +88,17 @@ class WebSocketClient {
           return;
         }
         
-        if (this.reconnectAttempts < this.maxReconnectAttempts && this.userId) {
+        if (this.reconnectAttempts < this.maxReconnectAttempts && this.userId && this.accessToken) {
           this.reconnectAttempts++;
           const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
           console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
           
           this.reconnectTimeout = setTimeout(() => {
-            this.connect(this.userId!);
+            console.log('[WebSocket] Attempting reconnection...');
+            this.connect(this.userId!, this.accessToken!);
           }, delay);
+        } else if (!this.accessToken) {
+          console.warn('[WebSocket] Cannot reconnect - missing access token. Please reconnect manually.');
         }
       };
     } catch (error) {
@@ -119,6 +118,7 @@ class WebSocketClient {
     }
     
     this.userId = null;
+    this.accessToken = null;
     this.reconnectAttempts = 0;
   }
   

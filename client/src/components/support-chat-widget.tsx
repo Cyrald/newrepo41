@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/authStore"
 import { wsClient } from "@/lib/websocket"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/queryClient"
+import { getAccessToken } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import type { SupportMessage } from "@shared/schema"
 import { format } from "date-fns"
@@ -101,7 +102,10 @@ export function SupportChatWidget({ isOpen, onClose }: SupportChatWidgetProps) {
   // Connect to WebSocket when chat is open
   useEffect(() => {
     if (isOpen && user?.id) {
-      wsClient.connect(user.id)
+      const accessToken = getAccessToken()
+      if (accessToken) {
+        wsClient.connect(user.id, accessToken)
+      }
 
       const unsubscribe = wsClient.onMessage((msg) => {
         if (msg.type === "new_message" && msg.message) {

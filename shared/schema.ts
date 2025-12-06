@@ -397,7 +397,7 @@ export const supportMessagesRelations = relations(supportMessages, ({ one, many 
 
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email("Неверный формат email"),
-  passwordHash: z.string().min(12, "Пароль должен быть не менее 12 символов")
+  passwordHash: z.string().min(8, "Пароль должен быть не менее 8 символов")
     .regex(/[A-Z]/, "Пароль должен содержать хотя бы одну заглавную букву")
     .regex(/[a-z]/, "Пароль должен содержать хотя бы одну строчную букву")
     .regex(/[0-9]/, "Пароль должен содержать хотя бы одну цифру"),
@@ -901,7 +901,7 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Текущий пароль обязателен"),
   
   newPassword: z.string()
-    .min(12, "Пароль должен быть не менее 12 символов")
+    .min(8, "Пароль должен быть не менее 8 символов")
     .max(100, "Пароль слишком длинный")
     .regex(/[a-z]/, "Пароль должен содержать строчную букву")
     .regex(/[A-Z]/, "Пароль должен содержать заглавную букву")

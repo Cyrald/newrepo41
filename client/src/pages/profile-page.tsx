@@ -122,7 +122,7 @@ export default function ProfilePage() {
               </h1>
               {user && (
                 <p className="mt-1 text-muted-foreground">
-                  {user.firstName} {user.lastName}
+                  {user.user.firstName} {user.user.lastName}
                 </p>
               )}
             </div>
@@ -168,7 +168,7 @@ export default function ProfilePage() {
                         <Label htmlFor="firstName">Имя</Label>
                         <Input
                           id="firstName"
-                          defaultValue={user?.firstName || ""}
+                          defaultValue={user?.user.firstName || ""}
                           onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
                           data-testid="input-first-name"
                         />
@@ -178,7 +178,7 @@ export default function ProfilePage() {
                         <Label htmlFor="lastName">Фамилия</Label>
                         <Input
                           id="lastName"
-                          defaultValue={user?.lastName || ""}
+                          defaultValue={user?.user.lastName || ""}
                           onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
                           data-testid="input-last-name"
                         />
@@ -189,7 +189,7 @@ export default function ProfilePage() {
                       <Label htmlFor="patronymic">Отчество</Label>
                       <Input
                         id="patronymic"
-                        defaultValue={user?.patronymic || ""}
+                        defaultValue={user?.user.patronymic || ""}
                         onChange={(e) => setProfileData({...profileData, patronymic: e.target.value})}
                         data-testid="input-patronymic"
                       />
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                       <Input
                         id="phone"
                         type="tel"
-                        defaultValue={user?.phone || ""}
+                        defaultValue={user?.user.phone || ""}
                         onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                         data-testid="input-phone"
                       />
@@ -340,7 +340,7 @@ export default function ProfilePage() {
                         Доступные бонусы
                       </p>
                       <p className="text-4xl font-bold text-primary" data-testid="text-bonus-points">
-                        {user?.bonusBalance || 0}
+                        {user?.user.bonusBalance || 0}
                       </p>
                       <p className="text-sm text-muted-foreground mt-2">
                         1 бонус = 1 рубль
