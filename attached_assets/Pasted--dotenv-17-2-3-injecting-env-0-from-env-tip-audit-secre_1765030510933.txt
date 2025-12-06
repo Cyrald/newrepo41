@@ -1,0 +1,16 @@
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+🔗 Подключение к локальной PostgreSQL
+✅ Подключение к базе данных успешно
+2025-12-06 19:14:35 [error] : uncaughtException: listen ENOTSUP: operation not supported on socket 0.0.0.0:5000
+Error: listen ENOTSUP: operation not supported on socket 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:1918:21)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {"error":{"code":"ENOTSUP","errno":-4049,"syscall":"listen","address":"0.0.0.0","port":5000},"stack":"Error: listen ENOTSUP: operation not supported on socket 0.0.0.0:5000\n    at Server.setupListenHandle [as _listen2] (node:net:1918:21)\n    at listenInCluster (node:net:1997:12)\n    at node:net:2206:7\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","exception":true,"date":"Sat Dec 06 2025 19:14:35 GMT+0500 (Екатеринбург, стандартное время)","process":{"pid":3128,"uid":null,"gid":null,"cwd":"C:\\Users\\nic\\Desktop\\newrepo50-main","execPath":"C:\\nvm4w\\nodejs\\node.exe","version":"v25.2.1","argv":["C:\\nvm4w\\nodejs\\node.exe","C:\\Users\\nic\\Desktop\\newrepo50-main\\server\\index.ts"],"memoryUsage":{"rss":440209408,"heapTotal":90562560,"heapUsed":61569528,"external":5295093,"arrayBuffers":1088670}},"os":{"loadavg":[0,0,0],"uptime":179185.14},"trace":[{"column":21,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1918,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":null,"line":2206,"method":null,"native":false},{"column":21,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":89,"method":"processTicksAndRejections","native":false}]}
+2025-12-06 19:14:35 [error] : Uncaught exception {"error":"listen ENOTSUP: operation not supported on socket 0.0.0.0:5000","stack":"Error: listen ENOTSUP: operation not supported on socket 0.0.0.0:5000\n    at Server.setupListenHandle [as _listen2] (node:net:1918:21)\n    at listenInCluster (node:net:1997:12)\n    at node:net:2206:7\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)"}
+2025-12-06 19:14:35 [info] : Graceful shutdown initiated {"signal":"uncaughtException"}
+2025-12-06 19:14:35 [error] : Error closing HTTP server {"error":"Server is not running."}
+2025-12-06 19:14:35 [info] : Image pipelines cleaned up
+2025-12-06 19:14:35 [info] : Image pipelines destroyed
+2025-12-06 19:14:35 [info] : Database pool closed
+2025-12-06 19:14:35 [info] : Graceful shutdown complete

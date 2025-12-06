@@ -127,15 +127,24 @@ app.use(express.urlencoded({
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(env.PORT, 10);
-  server.listen({
+  
+  // reusePort is Linux-only feature, not supported on Windows
+  const listenOptions: any = {
     port,
     host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  };
+  
+  // Only enable reusePort on Linux (not supported on Windows/Mac)
+  if (process.platform === 'linux') {
+    listenOptions.reusePort = true;
+  }
+  
+  server.listen(listenOptions, () => {
     logger.info(`Server started`, { 
       port, 
       environment: env.NODE_ENV,
-      nodeVersion: process.version 
+      nodeVersion: process.version,
+      platform: process.platform 
     });
     log(`serving on port ${port}`);
 
